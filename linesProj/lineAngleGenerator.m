@@ -7,12 +7,12 @@ rng(0)
 N = 1000;
 sigma2 = 0.01;
 
-imres = [342, 342];
+imres = [78, 78];
 lineIms = uint8(zeros(imres(1), imres(2), 1, N));
 labels = zeros(1, N);
 
 close all
-%figure('Position', [100 100 100 100]);
+figure('Position', [100 100 100 100]);
 for n = 1:N
   theta = 0;
   while abs(theta) < pi / 4
