@@ -1,4 +1,4 @@
-%% Euler Angel (Pitch, Roll) regression on Aachen dataset
+%% Regression on line angles in images
 clear all
 close all
 rng(0);
