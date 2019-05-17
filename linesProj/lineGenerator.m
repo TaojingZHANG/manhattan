@@ -8,8 +8,18 @@ M = 2;
 sigma2 = 0.01;
 
 imres = [78, 78];
-lineIms = uint8(zeros(imres(1), imres(2), 1, N));
+lineIms = single(zeros(imres(1), imres(2), 4, N)); % uint8
 normLabels = zeros(N, 2);
+
+iCoord = repmat(1:imres(1), [imres(1), 1]);
+jCoord = repmat((1:imres(2))', [1, imres(2)]);
+rCoord = sqrt((iCoord - imres(1)/2).^2 + (jCoord - imres(2)/2).^2);
+% thetaCoord = ?
+
+iCoord = (iCoord - mean(iCoord(:))) / std(iCoord(:));
+jCoord = (jCoord - mean(jCoord(:))) / std(jCoord(:));
+rCoord = (rCoord - mean(rCoord(:))) / std(rCoord(:));
+
 
 close all
 figure('Position', [100 100 100 100]);
@@ -52,7 +62,13 @@ for n = 1:N
   set(gca,'visible','off')
   set(gcf,'color','k');
   I = frame2im(getframe(ax));
-  lineIms(:, :, :, n) = imnoise(uint8(rgb2gray(I)), 'gaussian', 0, sigma2);
+  lineIms(:, :, 1, n) = imnoise(uint8(rgb2gray(I)), 'gaussian', 0, sigma2);
+  lineIms(:, :, 2, n) = iCoord;
+  lineIms(:, :, 3, n) = jCoord;
+  lineIms(:, :, 4, n) = rCoord;
+  
+%   X = double(imnoise(uint8(rgb2gray(I)), 'gaussian', 0, sigma2));
+%   lineIms(:, :, :, n) = single(abs(fftshift(fft2(X))));
       
   % Calculate intersection
   A = [a, b];

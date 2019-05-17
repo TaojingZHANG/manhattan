@@ -8,7 +8,7 @@ N = 1000;
 sigma2 = 0.01;
 
 imres = [78, 78];
-lineIms = uint8(zeros(imres(1), imres(2), 1, N));
+lineIms = single(zeros(imres(1), imres(2), 1, N)); % uint8
 labels = zeros(1, N);
 
 close all
@@ -41,7 +41,8 @@ for n = 1:N
   set(gca,'visible','off')
   set(gcf,'color','k');
   I = frame2im(getframe(ax));
-  lineIms(:, :, :, n) = imnoise(uint8(rgb2gray(I)), 'gaussian', 0, sigma2);
+  X = double(imnoise(uint8(rgb2gray(I)), 'gaussian', 0, sigma2));
+  lineIms(:, :, :, n) = single(abs(fftshift(fft2(X))));
   
 end
 
