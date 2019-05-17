@@ -42,16 +42,16 @@ layers = [
 
 %% Specify convolutional weights
 
-layers(2).Weights = zeros(squareSize, squareSize, 1, 2*squareSize - 2);
-layers(2).Weights(:, :, 1, 1) = 0.1 * diag(ones(1, squareSize)) / sqrt(squareSize);
-rot = 1 / (squareSize - 1) * 90;
-for i = 1:2*squareSize - 3
-  layers(2).Weights(:, :, 1, i + 1) = ...
-    imrotate(layers(2).Weights(:, :, 1, 1), -i * rot, 'bilinear', 'crop');
-end
-
-layers(2).WeightLearnRateFactor = 0;
-layers(2).WeightL2Factor = 0;
+% layers(2).Weights = zeros(squareSize, squareSize, 1, 2*squareSize - 2);
+% layers(2).Weights(:, :, 1, 1) = 0.1 * diag(ones(1, squareSize)) / sqrt(squareSize);
+% rot = 1 / (squareSize - 1) * 90;
+% for i = 1:2*squareSize - 3
+%   layers(2).Weights(:, :, 1, i + 1) = ...
+%     imrotate(layers(2).Weights(:, :, 1, 1), -i * rot, 'bilinear', 'crop');
+% end
+% 
+% layers(2).WeightLearnRateFactor = 0;
+% layers(2).WeightL2Factor = 0;
 
 %% Training parameters
 
@@ -105,6 +105,15 @@ subplot(212)
 plot(squeeze(testLabels), vPred, '.')
 legend(['Test: R2 = ', num2str(r2Test)])
 
+%% Cdf angle
+angles = vPred * sigma + mu;
+trueAngles = squeeze(testLabels) * sigma + mu;
+
+figure
+ecdf(abs(rad2deg(angles - trueAngles)));
+grid on
+xlabel('Angle Error')
+ylabel('cdf')
 
 %%
 layer = 2;
@@ -116,5 +125,7 @@ I = deepDreamImage(net,layer,channels,'PyramidLevels',1);
 figure
 for i = 1:8
     subplot(3,3,i)
-    imshow(I(:,:,:,i))
+    %imshow(I(:,:,:,i))
+    imagesc(net.Layers(layer).Weights(:, :, :, i) * 255);
+    colormap gray
 end

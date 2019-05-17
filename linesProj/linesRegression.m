@@ -11,7 +11,7 @@ addpath('../tools/')
 dataSize = size(trainIms);
 inputSize = dataSize(1:3);
 squareSize = 5;
-% 
+
 layers = [
     imageInputLayer([inputSize], 'Normalization', 'zerocenter')
 %     
@@ -19,9 +19,17 @@ layers = [
 %     batchNormalizationLayer
 %     reluLayer
     
+    convolution2dLayer([5, 5], 64 ,'Padding','same', 'Stride', 1)
+    batchNormalizationLayer
+    reluLayer
+
     convolution2dLayer([5, 5], 64 ,'Padding','same', 'Stride', 2)
     batchNormalizationLayer
     maxPooling2dLayer([2, 2])
+    reluLayer
+    
+    convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 1)
+    batchNormalizationLayer
     reluLayer
     
     convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 2)
@@ -36,14 +44,14 @@ layers = [
     
   
     %dropoutLayer(0.5);
-%     fullyConnectedLayer(32)
-%     reluLayer
+    fullyConnectedLayer(32)
+    reluLayer
 
     fullyConnectedLayer(2)
     %twoLineLayer('two lines')
     xyRegressionLayer('intersection regression')];
-% 
-% %% Specify convolutional weights
+
+%% Specify convolutional weights
 
 % layers(2).Weights = zeros(squareSize, squareSize, 1, 2*squareSize - 2);
 % layers(2).Weights(:, :, 1, 1) = 0.1 * diag(ones(1, squareSize)) / sqrt(squareSize);
@@ -59,16 +67,20 @@ layers = [
 %% Retrain angle network
 % load('angleNet.mat')
 % layers = angleNet.Layers;
-% layers = layers(1:8);
+% layers = layers(1:14);
+% 
+% layers = [layers; ...
+%   fullyConnectedLayer(2);
+%   xyRegressionLayer('pitch/roll')];
 % 
 % layers(2).WeightLearnRateFactor = 0;
 % layers(2).WeightL2Factor = 0;
+
+% layers(5).WeightLearnRateFactor = 0;
+% layers(5).WeightL2Factor = 0;
 % 
-% % layers(5).WeightLearnRateFactor = 0;
-% % layers(5).WeightL2Factor = 0;
-% % 
-% % layers(9).WeightLearnRateFactor = 0;
-% % layers(9).WeightL2Factor = 0;
+% layers(9).WeightLearnRateFactor = 0;
+% layers(9).WeightL2Factor = 0;
 % 
 % layers = [layers
 %   convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 2)
@@ -107,7 +119,7 @@ options = trainingOptions('sgdm', ...
     'LearnRateDropPeriod',10, ...
     'Shuffle','every-epoch', ...
     'Plots','training-progress', ...
-    'L2Regularization', 0.01, ...
+    'L2Regularization', 0.001, ...
     'VerboseFrequency', 10, ...
     'ValidationData', {testIms, testLabels}, ...
    'ValidationFrequency', validationFreq, ...
