@@ -5,6 +5,13 @@ rng(0);
 load('lineData.mat');
 addpath('../tools/')
 
+useCoordConv = false;
+
+if ~useCoordConv
+  trainIms = trainIms(:, :, 1, :);
+  testIms = testIms(:, :, 1, :);
+end
+
 
 % %% Custom network
 % 
@@ -14,95 +21,28 @@ squareSize = 5;
 
 layers = [
     imageInputLayer([inputSize], 'Normalization', 'zerocenter')
-%     
-%     convolution2dLayer([squareSize, squareSize], 2 * squareSize - 2,'Padding','same', 'Stride', 2)
-%     batchNormalizationLayer
-%     reluLayer
     
-    convolution2dLayer([5, 5], 64 ,'Padding','same', 'Stride', 1)
+    convolution2dLayer([5, 5], 32, 'Padding','same', 'Stride', 2)
     batchNormalizationLayer
     reluLayer
 
-    convolution2dLayer([5, 5], 64 ,'Padding','same', 'Stride', 2)
+    convolution2dLayer([3, 3], 64 ,'Padding','same', 'Stride', 2)
     batchNormalizationLayer
-    maxPooling2dLayer([2, 2])
     reluLayer
     
-    convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 1)
-    batchNormalizationLayer
-    reluLayer
     
     convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 2)
     batchNormalizationLayer
-    maxPooling2dLayer([2, 2])
+    %averagePooling2dLayer([2, 2])
     reluLayer
-    
-    convolution2dLayer([3, 3], 256 ,'Padding','same', 'Stride', 2)
-    batchNormalizationLayer
-    maxPooling2dLayer([2, 2])
-    reluLayer
-    
   
-    %dropoutLayer(0.5);
-    fullyConnectedLayer(32)
+    fullyConnectedLayer(512)
     reluLayer
 
-    fullyConnectedLayer(2)
+    fullyConnectedLayer(3)
     %twoLineLayer('two lines')
-    xyRegressionLayer('intersection regression')];
-
-%% Specify convolutional weights
-
-% layers(2).Weights = zeros(squareSize, squareSize, 1, 2*squareSize - 2);
-% layers(2).Weights(:, :, 1, 1) = 0.1 * diag(ones(1, squareSize)) / sqrt(squareSize);
-% rot = 1 / (squareSize - 1) * 90;
-% for i = 1:2*squareSize - 3
-%   layers(2).Weights(:, :, 1, i + 1) = ...
-%     imrotate(layers(2).Weights(:, :, 1, 1), -i * rot, 'bilinear', 'crop');
-% end
-% 
-% layers(2).WeightLearnRateFactor = 0;
-% layers(2).WeightL2Factor = 0;
-
-%% Retrain angle network
-% load('angleNet.mat')
-% layers = angleNet.Layers;
-% layers = layers(1:14);
-% 
-% layers = [layers; ...
-%   fullyConnectedLayer(2);
-%   xyRegressionLayer('pitch/roll')];
-% 
-% layers(2).WeightLearnRateFactor = 0;
-% layers(2).WeightL2Factor = 0;
-
-% layers(5).WeightLearnRateFactor = 0;
-% layers(5).WeightL2Factor = 0;
-% 
-% layers(9).WeightLearnRateFactor = 0;
-% layers(9).WeightL2Factor = 0;
-% 
-% layers = [layers
-%   convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 2)
-%   batchNormalizationLayer
-%   maxPooling2dLayer([2, 2])
-%   reluLayer
-%   
-%   convolution2dLayer([3, 3], 256 ,'Padding','same', 'Stride', 1)
-%   batchNormalizationLayer
-%   maxPooling2dLayer([2, 2])
-%   reluLayer
-%   
-%   %dropoutLayer(0.5)
-%   fullyConnectedLayer(2048)
-%   reluLayer
-%   
-%   %dropoutLayer(0.5)
-%   fullyConnectedLayer(32)
-%   reluLayer
-%   
-%   fullyConnectedLayer(2)
-%   xyRegressionLayer('xyregression')];
+    xyRegressionLayer('intersection regression')]; ...
+    %sphericalRegressionLayer('Spherical Regression', 1e-10)];
 
 
 %% Training parameters
@@ -110,7 +50,7 @@ layers = [
 miniBatchSize = 32;
 validationFreq = floor(length(trainLabels) / miniBatchSize);
 
-options = trainingOptions('sgdm', ...
+options = trainingOptions('adam', ...
     'MiniBatchSize',miniBatchSize, ...
     'MaxEpochs',100, ...
     'InitialLearnRate',1e-4, ...
@@ -119,7 +59,7 @@ options = trainingOptions('sgdm', ...
     'LearnRateDropPeriod',10, ...
     'Shuffle','every-epoch', ...
     'Plots','training-progress', ...
-    'L2Regularization', 0.001, ...
+    'L2Regularization', 0, ...
     'VerboseFrequency', 10, ...
     'ValidationData', {testIms, testLabels}, ...
    'ValidationFrequency', validationFreq, ...
@@ -132,6 +72,12 @@ options = trainingOptions('sgdm', ...
 %% Prediction
 vPredTrain = predict(net, trainIms, 'MiniBatchSize', miniBatchSize, 'ExecutionEnvironment', 'cpu');
 vPred = predict(net, testIms, 'MiniBatchSize', miniBatchSize, 'ExecutionEnvironment', 'cpu');
+
+vPred = vPred ./ sqrt(sum(vPred.^2, 2));
+vPredTrain = vPredTrain ./ sqrt(sum(vPredTrain.^2, 2));
+
+testLabels = testLabels ./ sum(testLabels.^2, 3);
+trainLabels = trainLabels ./ sum(trainLabels.^2, 3);
 
 %% Calculate r^2 coefficients
 trainAngles = squeeze(trainLabels);
@@ -173,5 +119,5 @@ I = deepDreamImage(net,layer,channels,'PyramidLevels',1);
 figure
 for i = 1:8
     subplot(3,3,i)
-    imshow(I(:,:,:,i))
+    imshow(I(:,:,1,i))
 end
