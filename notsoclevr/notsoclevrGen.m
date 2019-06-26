@@ -9,7 +9,6 @@ if nargin < 3
 end
 
 space = linspace(-1, 1, imSize);
-
 s = squareSize - 1;
 
 imCenters = imSize - s + 1;
