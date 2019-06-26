@@ -8,7 +8,11 @@ if nargin < 3
   squareSize = 9;
 end
 
-imCenters = imSize - squareSize + 1;
+space = linspace(-1, 1, imSize);
+
+s = squareSize - 1;
+
+imCenters = imSize - s + 1;
 N = imCenters^2;
 
 images = zeros(imSize, imSize, 1, N);
@@ -17,8 +21,8 @@ labels = zeros(1, 1, 2, N);
 c = 1;
 for i = 1:imCenters
   for j = 1:imCenters
-    images(i:i+squareSize, j:j+squareSize, 1, c) = 1;
-    labels(1, 1, :, c) = [i + squareSize/2, j + squareSize/2];
+    images(i:i+s, j:j+s, 1, c) = 1;
+    labels(1, 1, :, c) = space([i + s/2, j + s/2]);
     c = c + 1;
   end
 end
@@ -50,12 +54,6 @@ elseif strcmp(split, 'quadrant')
 else
   error('invalid split')
 end
-
-
-mu = mean(labels, 4);
-sigma = std(labels, [], 4);
-testLabels = (testLabels - mu) ./ sigma;
-trainLabels = (trainLabels - mu) ./ sigma;
 
 
 end
