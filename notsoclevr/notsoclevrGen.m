@@ -9,7 +9,6 @@ if nargin < 3
 end
 
 space = linspace(-1, 1, imSize);
-
 s = squareSize - 1;
 
 imCenters = imSize - s + 1;
@@ -39,14 +38,15 @@ if strcmp(split, 'uniform')
   trainLabels = labels(:, :, :, train);
   testLabels = labels(:, :, :, test);
 elseif strcmp(split, 'quadrant')
-  fourthQuadrant = find(labels(1, 1, 1, :) > imSize / 2 & ...
-    labels(1, 1, 2, :) > imSize / 2);
+  limit = space(imSize / 2);
+  fourthQuadrant = find(labels(1, 1, 1, :) > limit & ...
+    labels(1, 1, 2, :) > limit);
   fourthQuadrant = fourthQuadrant(randperm(length(fourthQuadrant)));
   testLabels = labels(:, :, :, fourthQuadrant);
   testIms = images(:, :, :, fourthQuadrant);
   
-  theRest = find(labels(1, 1, 1, :) <= imSize / 2 | ...
-    labels(1, 1, 2, :) <= imSize / 2);
+  theRest = find(labels(1, 1, 1, :) <= limit | ...
+    labels(1, 1, 2, :) <= limit);
   theRest = theRest(randperm(length(theRest)));
   trainLabels = labels(:, :, :, theRest);
   trainIms = images(:, :, :, theRest);
