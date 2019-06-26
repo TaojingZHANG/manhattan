@@ -116,6 +116,19 @@ classdef argmaxLayer < nnet.layer.Layer
 %                 dLdX(i, j, :, :) = dZdX(1, :, :, :) * dydz1(i) + ...
 %                   dZdX(2, :, :, :) + dydz2(j);              end
 %             end
+
+            dLdXnew = zeros(size(dLdX));
+            for n = 1:N
+              for m = 1:M
+                x = Xe(:, :, m, n);
+                [~, maxInd] = max(x(:));
+                [i, j] = ind2sub(size(x), maxInd);
+                dLdXnew(i, j, m, n) = dLdX(i, j, m, n);
+              end
+            end
+            dLdX = dLdXnew;
+            
+            
             dLdX = cast(dLdX, 'like', X);
 
         end

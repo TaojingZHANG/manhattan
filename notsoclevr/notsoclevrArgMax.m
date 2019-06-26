@@ -1,14 +1,14 @@
-%% Regression on two-line intersection from images
 clear all
 close all
 rng(0);
 addpath('../tools/')
 
 %% Generate notsoclevr
-%[trainIms, testIms, trainLabels, testLabels] = notsoclevrGen('quadrant', 24, 3);
+% [trainIms, testIms, trainLabels, testLabels] = notsoclevrGen('quadrant', 24, 3);
 
 sigma = 0.1;
-[trainIms, testIms, trainLabels, testLabels] = notsomeanGen(20, sigma);
+%[trainIms, testIms, trainLabels, testLabels] = notsomeanGen(20, sigma);
+[trainIms, testIms, trainLabels, testLabels] = notsomeanGen2(20, sigma);
 
 %% Custom network
 
@@ -18,23 +18,22 @@ inputSize = dataSize(1:3);
 layers = [
     imageInputLayer(inputSize, 'Normalization', 'none')
     
-    convolution2dLayer([1, 1], 2, 'Padding','same')
-    reluLayer
-
+    convolution2dLayer([2, 2], 2, 'Padding','same')
+    
     argmaxLayer('argmax', 0.5);
     
     fullyConnectedLayer(2)
     xyRegressionLayer('regression')];
-
+  
 
 %% Training parameters
 
-miniBatchSize = 64;
+miniBatchSize = 16;
 validationFreq = floor(length(trainLabels) / miniBatchSize);
 
 options = trainingOptions('sgdm', ...
     'MiniBatchSize',miniBatchSize, ...
-    'MaxEpochs',10, ...
+    'MaxEpochs',100, ...
     'InitialLearnRate',1e-2, ...
     'LearnRateSchedule','piecewise', ...
     'LearnRateDropFactor',0.5, ...

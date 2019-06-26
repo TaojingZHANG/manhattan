@@ -1,4 +1,4 @@
-function [trainIms, testIms, trainLabels, testLabels] = notsomeanGen(imSize, sigma)
+function [trainIms, testIms, trainLabels, testLabels] = notsomeanGen2(imSize, sigma)
 % Generate images from the Not-so-Clevr dataset
 
 N = imSize^2 * (imSize^2 - 1);
@@ -9,14 +9,19 @@ labels = zeros(1, 1, 2, N);
 space = linspace(-1, 1, imSize);
 
 c = 1;
-for i = 1:imSize
-  for j = 1:imSize
-    for iprime = 1:imSize
-      for jprime = 1:imSize
-        if ~(iprime == i && jprime == j && j == jprime && i == iprime)
-          images(i, j, 1, c) = 1;          
-          images(iprime, jprime, 1, c) = -1;
+for i = 1:imSize-1
+  for j = 1:imSize-1
+    for iprime = 1:imSize-1
+      for jprime = 2:imSize
+        if (abs(i-iprime) > 5 && abs(j-jprime) > 5)
+          images(i, j, 1, c) = 1;
+          images(i+1, j+1, 1, c) = 1;
+          
+          
+          images(iprime, jprime, 1, c) = 1; % -1
+          images(iprime + 1, jprime-1, 1, c) = 1; % -1
           labels(1, 1, :, c) = 1/2*(space([i, j])) + 1/2*(space([iprime, jprime]));
+          
           images(:, :, 1, c) = images(:, :, 1, c) + sigma * randn(imSize);
           
           c = c + 1;
