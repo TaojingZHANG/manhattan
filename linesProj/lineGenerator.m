@@ -3,7 +3,7 @@ rng(0)
 
 %% Generate N random images with M lines and their intersection as labels
 
-N = 10000;
+N = 1000;
 M = 2;
 sigma2 = 0.001;
 
@@ -69,13 +69,15 @@ for n = 1:N
   set(gca,'visible','off')
   set(gcf,'color','k');
   I = frame2im(getframe(ax));
-  lineIms(:, :, 1, n) = imnoise(uint8(rgb2gray(I)), 'gaussian', 0, sigma2);
+  Inoisy = imnoise(uint8(rgb2gray(I)), 'gaussian', 0, sigma2);
+  lineIms(:, :, 1, n) = Inoisy';
   lineIms(:, :, 2, n) = iCoord;
   lineIms(:, :, 3, n) = jCoord;
   lineIms(:, :, 4, n) = rCoord;
   
 end
 
+labels = normLabels';
 
 stdLabels = reshape(labels(1:3, :), [1, 1, 3, N]);
 muScale = 1;

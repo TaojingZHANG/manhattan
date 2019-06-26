@@ -5,64 +5,59 @@ rng(0);
 addpath('../tools/')
 
 %% Generate notsoclevr
-[trainIms, testIms, trainLabels, testLabels] = notsoclevrGen('quadrant');
+[trainIms, testIms, trainLabels, testLabels] = notsoclevrGen('uniform');
 
 %% Custom network
 
 dataSize = size(trainIms);
 inputSize = dataSize(1:3);
 
+% layers = [
+%     imageInputLayer(inputSize, 'Normalization', 'none')
+%     
+%     coordConvLayer('');
+%     convolution2dLayer([5, 5], 32, 'Padding','same', 'Stride', 2)
+%     batchNormalizationLayer
+%     reluLayer
+% 
+%     %coordConvLayer('');
+%     convolution2dLayer([3, 3], 64 ,'Padding','same', 'Stride', 2)
+%     batchNormalizationLayer
+%     reluLayer
+%     
+%     %coordConvLayer('');
+%     convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 2)
+%     batchNormalizationLayer
+%     reluLayer
+%   
+%     fullyConnectedLayer(512)
+%     reluLayer
+% 
+%     fullyConnectedLayer(2)
+%     xyRegressionLayer('intersection regression')]; ...
+
 layers = [
     imageInputLayer(inputSize, 'Normalization', 'none')
     
-    coordConvLayer('');
-    convolution2dLayer([5, 5], 32, 'Padding','same', 'Stride', 2)
-    batchNormalizationLayer
+    coordConvLayer('CoordConv');
+    convolution2dLayer([1, 1], 8, 'Padding','same')
     reluLayer
 
-    %coordConvLayer('');
-    convolution2dLayer([3, 3], 64 ,'Padding','same', 'Stride', 2)
-    batchNormalizationLayer
+    convolution2dLayer([1, 1], 8 ,'Padding','same')
     reluLayer
     
-    %coordConvLayer('');
-    convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 2)
-    batchNormalizationLayer
-    reluLayer
-  
-    fullyConnectedLayer(512)
+    convolution2dLayer([1, 1], 8 ,'Padding','same')
     reluLayer
 
-    fullyConnectedLayer(2)
-    xyRegressionLayer('intersection regression')]; ...
+    
+    convolution2dLayer([3, 3], 8 ,'Padding','same')
+    reluLayer
+      
+    convolution2dLayer([3, 3], 2 ,'Padding','same')
+    reluLayer
 
-% layers = [
-%     imageInputLayer(inputSize, 'Normalization', 'zerocenter')
-%     
-%     coordConvLayer('CoordConv');
-%     convolution2dLayer([1, 1], 8, 'Padding','same')
-%     batchNormalizationLayer
-%     reluLayer
-% 
-%     convolution2dLayer([1, 1], 8 ,'Padding','same')
-%     batchNormalizationLayer
-%     reluLayer
-%     
-%     convolution2dLayer([1, 1], 8 ,'Padding','same')
-%     batchNormalizationLayer
-%     reluLayer
-% 
-%     
-%     convolution2dLayer([3, 3], 8 ,'Padding','same')
-%     batchNormalizationLayer
-%     reluLayer
-%       
-%     convolution2dLayer([3, 3], 2 ,'Padding','same')
-%     batchNormalizationLayer
-%     reluLayer
-% 
-%     maxPooling2dLayer(64, 'stride', 64)
-%     xyRegressionLayer('intersection regression')];
+    maxPooling2dLayer(64, 'stride', 64)
+    xyRegressionLayer('intersection regression')];
 
 
 
@@ -74,13 +69,13 @@ validationFreq = floor(length(trainLabels) / miniBatchSize);
 options = trainingOptions('adam', ...
     'MiniBatchSize',miniBatchSize, ...
     'MaxEpochs',10, ...
-    'InitialLearnRate',1e-4, ...
+    'InitialLearnRate',5e-4, ...
     'LearnRateSchedule','piecewise', ...
     'LearnRateDropFactor',0.5, ...
     'LearnRateDropPeriod',10, ...
     'Shuffle','every-epoch', ...
     'Plots','training-progress', ...
-    'L2Regularization', 0.01, ...
+    'L2Regularization', 5e-4, ...
     'VerboseFrequency', 10, ...
     'ValidationData', {testIms, testLabels}, ...
    'ValidationFrequency', validationFreq, ...

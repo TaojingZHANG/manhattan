@@ -6,10 +6,22 @@ load('lineData.mat');
 addpath('../tools/')
 
 useCoordConv = false;
+useTransposeTraining = true;
 
 if ~useCoordConv
   trainIms = trainIms(:, :, 1, :);
   testIms = testIms(:, :, 1, :);
+end
+
+if useTransposeTraining
+  trainImsOld = trainIms;
+  testImsOld = testIms;
+  for n = size(trainIms, 4)
+    trainIms(:, :, 1, n) = trainImsOld(:, :, 1, n) - trainImsOld(:, :, 1, n)';
+  end
+   for n = size(testIms, 4)
+    testIms(:, :, 1, n) = testImsOld(:, :, 1, n) - testImsOld(:, :, 1, n)';
+  end
 end
 
 
@@ -33,7 +45,6 @@ layers = [
     
     convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 2)
     batchNormalizationLayer
-    %averagePooling2dLayer([2, 2])
     reluLayer
   
     fullyConnectedLayer(512)
