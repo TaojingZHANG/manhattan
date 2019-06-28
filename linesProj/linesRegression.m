@@ -6,7 +6,7 @@ load('lineData.mat');
 addpath('../tools/')
 
 useCoordConv = false;
-useTransposeTraining = true;
+useTransposeTraining = false;
 
 if ~useCoordConv
   trainIms = trainIms(:, :, 1, :);
@@ -34,23 +34,38 @@ squareSize = 5;
 layers = [
     imageInputLayer([inputSize], 'Normalization', 'zerocenter')
     
-    convolution2dLayer([5, 5], 32, 'Padding','same', 'Stride', 2)
-    batchNormalizationLayer
-    reluLayer
-
-    convolution2dLayer([3, 3], 64 ,'Padding','same', 'Stride', 2)
+    convolution2dLayer([3, 3], 64, 'Padding','same')
     batchNormalizationLayer
     reluLayer
     
-    
-    convolution2dLayer([3, 3], 128 ,'Padding','same', 'Stride', 2)
-    batchNormalizationLayer
+    convolution2dLayer([3, 3], 128, 'Padding','same')
+   batchNormalizationLayer
     reluLayer
+%     
+%     convolution2dLayer([3, 3], 32, 'Padding','same')
+%  %   batchNormalizationLayer
+%     reluLayer
+% 
+%     convolution2dLayer([3, 3], 128 ,'Padding','same')
+% %    batchNormalizationLayer
+%     reluLayer
+%     
+%     convolution2dLayer([3, 3], 128 ,'Padding','same')
+%     batchNormalizationLayer
+%     reluLayer
+    
+    newargmaxLayer('argmax', 0.5);
   
-    fullyConnectedLayer(512)
+    fullyConnectedLayer(128)
     reluLayer
+    
+%     fullyConnectedLayer(64)
+%     reluLayer
+%     
+%     fullyConnectedLayer(32)
+%     reluLayer
 
-    fullyConnectedLayer(3)
+    fullyConnectedLayer(2)
     %twoLineLayer('two lines')
     xyRegressionLayer('intersection regression')]; ...
     %sphericalRegressionLayer('Spherical Regression', 1e-10)];
@@ -66,7 +81,7 @@ options = trainingOptions('adam', ...
     'MaxEpochs',100, ...
     'InitialLearnRate',1e-4, ...
     'LearnRateSchedule','piecewise', ...
-    'LearnRateDropFactor',0.5, ...
+    'LearnRateDropFactor',1, ...
     'LearnRateDropPeriod',10, ...
     'Shuffle','every-epoch', ...
     'Plots','training-progress', ...

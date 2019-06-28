@@ -20,7 +20,7 @@ layers = [
     
     convolution2dLayer([2, 2], 2, 'Padding','same')
     
-    argmaxLayer('argmax', 0.5);
+    newargmaxLayer('argmax', 0.5);
     
     fullyConnectedLayer(2)
     xyRegressionLayer('regression')];
