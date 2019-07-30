@@ -34,29 +34,29 @@ squareSize = 5;
 layers = [
     imageInputLayer([inputSize], 'Normalization', 'zerocenter')
     
-    convolution2dLayer([3, 3], 64, 'Padding','same')
+    convolution2dLayer([3, 3], 8, 'Padding','same')
     batchNormalizationLayer
     reluLayer
     
-    convolution2dLayer([3, 3], 128, 'Padding','same')
+    convolution2dLayer([3, 3], 16, 'Padding','same')
    batchNormalizationLayer
     reluLayer
-%     
-%     convolution2dLayer([3, 3], 32, 'Padding','same')
-%  %   batchNormalizationLayer
-%     reluLayer
-% 
-%     convolution2dLayer([3, 3], 128 ,'Padding','same')
-% %    batchNormalizationLayer
-%     reluLayer
-%     
+    
+    convolution2dLayer([3, 3], 32, 'Padding','same')
+   batchNormalizationLayer
+    reluLayer
+
+    convolution2dLayer([3, 3], 64 ,'Padding','same')
+   batchNormalizationLayer
+    reluLayer
+    
 %     convolution2dLayer([3, 3], 128 ,'Padding','same')
 %     batchNormalizationLayer
 %     reluLayer
     
     newargmaxLayer('argmax', 0.5);
   
-    fullyConnectedLayer(128)
+    fullyConnectedLayer(1024)
     reluLayer
     
 %     fullyConnectedLayer(64)
@@ -73,12 +73,12 @@ layers = [
 
 %% Training parameters
 
-miniBatchSize = 32;
+miniBatchSize = 8;
 validationFreq = floor(length(trainLabels) / miniBatchSize);
 
 options = trainingOptions('adam', ...
     'MiniBatchSize',miniBatchSize, ...
-    'MaxEpochs',100, ...
+    'MaxEpochs',30, ...
     'InitialLearnRate',1e-4, ...
     'LearnRateSchedule','piecewise', ...
     'LearnRateDropFactor',1, ...
@@ -99,11 +99,11 @@ options = trainingOptions('adam', ...
 vPredTrain = predict(net, trainIms, 'MiniBatchSize', miniBatchSize, 'ExecutionEnvironment', 'cpu');
 vPred = predict(net, testIms, 'MiniBatchSize', miniBatchSize, 'ExecutionEnvironment', 'cpu');
 
-vPred = vPred ./ sqrt(sum(vPred.^2, 2));
-vPredTrain = vPredTrain ./ sqrt(sum(vPredTrain.^2, 2));
-
-testLabels = testLabels ./ sum(testLabels.^2, 3);
-trainLabels = trainLabels ./ sum(trainLabels.^2, 3);
+% vPred = vPred ./ sqrt(sum(vPred.^2, 2));
+% vPredTrain = vPredTrain ./ sqrt(sum(vPredTrain.^2, 2));
+% 
+% testLabels = testLabels ./ sum(testLabels.^2, 3);
+% trainLabels = trainLabels ./ sum(trainLabels.^2, 3);
 
 %% Calculate r^2 coefficients
 trainAngles = squeeze(trainLabels);
