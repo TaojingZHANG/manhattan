@@ -32,32 +32,32 @@ inputSize = dataSize(1:3);
 squareSize = 5;
 
 layers = [
-    imageInputLayer([inputSize], 'Normalization', 'zerocenter')
+    imageInputLayer([inputSize], 'Normalization', 'zerocenter', 'Name', 'input')
     
-    convolution2dLayer([3, 3], 8, 'Padding','same')
+    convolution2dLayer([3, 3], 8, 'Padding','same', 'Name', 'conv1')
+    batchNormalizationLayer('Name','bn1')
+    reluLayer('Name','relu1')
+    
+    convolution2dLayer([3, 3], 16, 'Padding','same','Name', 'conv2')
+   batchNormalizationLayer('Name','bn2')
+    reluLayer('Name','relu2')
+    
+    convolution2dLayer([3, 3], 32, 'Padding','same', 'Name','conv3')
+   batchNormalizationLayer('Name','bn3')
+    reluLayer('Name','relu3')
+
+    convolution2dLayer([3, 3], 64 ,'Padding','same','Name', 'conv4')
+   batchNormalizationLayer('Name','bn4')
+    reluLayer('Name','relu4')
+    
+    convolution2dLayer([3, 3], 128 ,'Padding','same')
     batchNormalizationLayer
     reluLayer
     
-    convolution2dLayer([3, 3], 16, 'Padding','same')
-   batchNormalizationLayer
-    reluLayer
-    
-    convolution2dLayer([3, 3], 32, 'Padding','same')
-   batchNormalizationLayer
-    reluLayer
-
-    convolution2dLayer([3, 3], 64 ,'Padding','same')
-   batchNormalizationLayer
-    reluLayer
-    
-%     convolution2dLayer([3, 3], 128 ,'Padding','same')
-%     batchNormalizationLayer
-%     reluLayer
-    
     newargmaxLayer('argmax', 0.5);
   
-    fullyConnectedLayer(1024)
-    reluLayer
+    fullyConnectedLayer(1024, 'Name','fc1')
+    reluLayer('Name','relu5')
     
 %     fullyConnectedLayer(64)
 %     reluLayer
@@ -65,11 +65,25 @@ layers = [
 %     fullyConnectedLayer(32)
 %     reluLayer
 
-    fullyConnectedLayer(2)
+    fullyConnectedLayer(3, 'Name', 'fc2')
     %twoLineLayer('two lines')
-    xyRegressionLayer('intersection regression')]; ...
+    %xyRegressionLayer('intersection regression')]; ...
     %sphericalRegressionLayer('Spherical Regression', 1e-10)];
+    %expSphericalRegressionLayer('Exponential Spherical Regression', 1e-10)];
+    expSphereLayer('sphere')
+    xyRegressionLayer('xyRegression')];
 
+  
+  
+% classlayer = classificationLayer('Name', 'classification');
+% 
+% lgraph = layerGraph(layers);
+% lgraph = addLayers(lgraph, classlayer);
+% lgraph = connectlayers(lgraph, 'fc2', 'classification');
+% figure
+% plot(lgraph)
+
+% layers(end-2) = setLearnRateFactor(layers(end-2),'Weights',5);
 
 %% Training parameters
 

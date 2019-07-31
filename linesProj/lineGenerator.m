@@ -6,7 +6,7 @@ rng(0)
 N = 1000;
 M = 2;
 sigma2 = 0.001;
-thresHigh = 2;
+thresHigh = 10;
 thresLow = 1;
 
 pointsInside = false;
@@ -35,7 +35,7 @@ for n = 1:N
   b = zeros(M, 1);
   c = zeros(M, 1);
   r = 1.1*[thresHigh; thresHigh];
-  while ~((abs(r(1)) < thresHigh && abs(r(2)) < thresHigh) && (abs(r(1)) > thresLow || abs(r(2)) > thresLow))
+  while ~((abs(r(1)) < thresHigh && abs(r(2)) < thresHigh) && (abs(r(1)) > thresLow || abs(r(2)) > thresLow) && r(1) > 0 && r(2) > 0)
     for m = 1:2
       if pointsInside
         if m == 1
@@ -62,7 +62,7 @@ for n = 1:N
         
       else
         theta = 0;
-        while abs(theta) < pi/4
+        %while abs(theta) < pi/4
           p1 = -1 + 2 * rand(2, 1);
           p2 = -1 + 2 * rand(2, 1);
           % make sure the points are separated enough
@@ -75,7 +75,7 @@ for n = 1:N
           dy = p2(2) - p1(2);
           
           theta = atan(dy / dx);
-        end
+        %end
         plot([p1(1), p2(1)], [p1(2), p2(2)], 'w');
         hold on
         
@@ -112,9 +112,11 @@ for n = 1:N
 end
 
 normLabels = labels';
-normLabels = normLabels ./ sum(normLabels.^2, 1);
+normLabels = normLabels ./ sqrt(sum(normLabels.^2, 1));
 
-stdLabels = reshape(normLabels(1:2, :), [1, 1, 2, N]);
+%normLabels = abs(normLabels); %%%%%%%
+
+stdLabels = reshape(normLabels(1:3, :), [1, 1, 3, N]);
 muScale = 1;
 sigmaScale = 1;
 Nnew = N;
