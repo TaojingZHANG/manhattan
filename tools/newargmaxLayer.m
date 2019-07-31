@@ -39,9 +39,9 @@ classdef newargmaxLayer < nnet.layer.Layer
         end
         
         function [dLdX] = backward(layer, X, ~, dLdZ, ~)
-            % [dLdX1,…,dLdXn,dLdW] = backward(layer,X1,…,Xn,Z,dLdZ,~)
+            % [dLdX1,???,dLdXn,dLdW] = backward(layer,X1,???,Xn,Z,dLdZ,~)
             % backward propagates the derivative of the loss function
-            % through the layer.
+            % through the layer.                        
             
             I = size(X, 1);
             J = size(X, 2);
@@ -63,6 +63,8 @@ classdef newargmaxLayer < nnet.layer.Layer
             dzdy1 = linspace(-1, 1, I);
             dzdy2 = linspace(-1, 1, J);
             dLdX = zeros(size(X));
+            dLdX = cast(dLdX, 'like', X);
+
             for n = 1:N
               for m = 1:M
                 tmp = a(:, :, m, n);
@@ -82,8 +84,6 @@ classdef newargmaxLayer < nnet.layer.Layer
               end
             end
             
-            dLdX = cast(dLdX, 'like', X);
-
         end
     end
 end

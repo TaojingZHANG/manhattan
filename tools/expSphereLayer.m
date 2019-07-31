@@ -28,13 +28,14 @@ classdef expSphereLayer < nnet.layer.Layer
         end
         
         function [dLdX] = backward(layer, X, ~, dLdZ, ~)
-            % [dLdX1,…,dLdXn,dLdW] = backward(layer,X1,…,Xn,Z,dLdZ,~)
+            % [dLdX1,???,dLdXn,dLdW] = backward(layer,X1,???,Xn,Z,dLdZ,~)
             % backward propagates the derivative of the loss function
             % through the layer.
             
             f = exp(X);
             Z = f ./ sqrt(sum(f.^2, 3));
             dLdX = zeros(size(Z));
+            dLdX = cast(dLdX, 'like', dLdZ);
             for j = 1:3
               for i = 1:3
                 if i == j
@@ -47,7 +48,6 @@ classdef expSphereLayer < nnet.layer.Layer
                 end
               end
             end
-            dLdX = cast(dLdX, 'like', dLdZ);
         end
     end
 end
