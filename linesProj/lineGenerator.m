@@ -35,7 +35,7 @@ for n = 1:N
   b = zeros(M, 1);
   c = zeros(M, 1);
   r = 1.1*[thresHigh; thresHigh];
-  while ~((abs(r(1)) < thresHigh && abs(r(2)) < thresHigh) && (abs(r(1)) > thresLow || abs(r(2)) > thresLow) && r(1) > 0 && r(2) > 0)
+  while ~((abs(r(1)) < thresHigh && abs(r(2)) < thresHigh) && (abs(r(1)) > thresLow || abs(r(2)) > thresLow)) % && r(1) > 0 && r(2) > 0)
     for m = 1:2
       if pointsInside
         if m == 1
@@ -116,7 +116,7 @@ normLabels = normLabels ./ sqrt(sum(normLabels.^2, 1));
 
 %normLabels = abs(normLabels); %%%%%%%
 
-stdLabels = reshape(normLabels(1:3, :), [1, 1, 3, N]);
+stdLabels = reshape(normLabels(1:2, :), [1, 1, 2, N]);
 muScale = 1;
 sigmaScale = 1;
 Nnew = N;
@@ -125,7 +125,7 @@ Nnew = N;
 ratio = 0.9;
 
 train = 1:ceil(ratio * Nnew);
-test = ceil(ratio * Nnew):Nnew;
+test = ceil(ratio * Nnew)+1:Nnew;
 
 trainIms = lineIms(:, :, :, train);
 testIms = lineIms(:, :, :, test);

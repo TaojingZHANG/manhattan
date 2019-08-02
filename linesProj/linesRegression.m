@@ -54,23 +54,24 @@ layers = [
     batchNormalizationLayer
     reluLayer
     
-    newargmaxLayer('argmax', 0.5);
+  newargmaxLayer('argmax', 0.5);
   
-    fullyConnectedLayer(1024, 'Name','fc1')
+    fullyConnectedLayer(128, 'Name','fc1')
     reluLayer('Name','relu5')
     
-%     fullyConnectedLayer(64)
-%     reluLayer
-%     
-%     fullyConnectedLayer(32)
-%     reluLayer
+    fullyConnectedLayer(64)
+    reluLayer
+    
+    fullyConnectedLayer(32)
+    reluLayer
 
-    fullyConnectedLayer(3, 'Name', 'fc2')
+    fullyConnectedLayer(2, 'Name', 'fc2')
     %twoLineLayer('two lines')
     %xyRegressionLayer('intersection regression')]; ...
-    %sphericalRegressionLayer('Spherical Regression', 1e-10)];
+%     sphereLayer('Spherical Regression')
     %expSphericalRegressionLayer('Exponential Spherical Regression', 1e-10)];
-    expSphereLayer('sphere')
+%     expSphereLayer('sphere')
+%    cosineSphereLayer('cosineSphere')
     xyRegressionLayer('xyRegression')];
 
   
@@ -87,23 +88,25 @@ layers = [
 
 %% Training parameters
 
-miniBatchSize = 8;
+miniBatchSize = 64; %size(trainIms, 4);
 validationFreq = floor(length(trainLabels) / miniBatchSize);
 
 options = trainingOptions('adam', ...
     'MiniBatchSize',miniBatchSize, ...
-    'MaxEpochs',30, ...
-    'InitialLearnRate',1e-4, ...
+    'MaxEpochs',300, ...
+    'InitialLearnRate',1e-3, ...
     'LearnRateSchedule','piecewise', ...
     'LearnRateDropFactor',1, ...
     'LearnRateDropPeriod',10, ...
     'Shuffle','every-epoch', ...
     'Plots','training-progress', ...
-    'L2Regularization', 0, ...
+    'L2Regularization', 1e-4, ...
     'VerboseFrequency', 10, ...
     'ValidationData', {testIms, testLabels}, ...
    'ValidationFrequency', validationFreq, ...
-   'ValidationPatience', Inf);
+   'ValidationPatience', Inf, ...
+   'GradientThresholdMethod', 'l2norm', ...
+   'GradientThreshold', 1);
   
   
  %% Train network
