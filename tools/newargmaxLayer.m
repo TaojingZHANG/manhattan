@@ -52,14 +52,9 @@ classdef newargmaxLayer < nnet.layer.Layer
             Xs = reshape(X, [I*J, M, N]);
             [~, maxInd] = max(Xs, [], 1);
             [indI, indJ] = ind2sub([I, J, M, N], maxInd);
-            Xind = zeros(size(Xs));
-            Xind(maxInd) = 1;
-            Xind = reshape(Xind, [I, J, M, N]);
-            Z = reshape([indI; indJ], [2, 1, M, N]);
 
-            Xe = exp(X);
-            g = -log(-log(rand(size(Xe)))); 
-            a = (log(Xe) + g) / layer.tau;
+            g = -log(-log(rand(size(X)))); 
+            a = (X + g) / layer.tau;
             dzdy1 = linspace(-1, 1, I);
             dzdy2 = linspace(-1, 1, J);
             dLdX = zeros(size(X));
