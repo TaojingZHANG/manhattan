@@ -5,15 +5,18 @@ rng(0)
 
 N = 1000;
 M = 2;
+k = 2;
 sigma2 = 0.001;
-thresHigh = 10;
+thresHigh = 10000;
 thresLow = 1;
+
+usePitchRoll = false;
 
 pointsInside = false;
 
 imres = [78, 78];
 lineIms = single(zeros(imres(1), imres(2), 4, N)); % uint8
-labels = zeros(N, 3);
+labels = zeros(N, k);
 
 iCoord = repmat(1:imres(1), [imres(1), 1]);
 jCoord = repmat((1:imres(2))', [1, imres(2)]);
@@ -35,7 +38,7 @@ for n = 1:N
   b = zeros(M, 1);
   c = zeros(M, 1);
   r = 1.1*[thresHigh; thresHigh];
-  while ~((abs(r(1)) < thresHigh && abs(r(2)) < thresHigh) && (abs(r(1)) > thresLow || abs(r(2)) > thresLow)) % && r(1) > 0 && r(2) > 0)
+  while ~((abs(r(1)) < thresHigh && abs(r(2)) < thresHigh) && (abs(r(1)) > thresLow || abs(r(2)) > thresLow) && abs(r(2)) > 1 && abs(r(1)) < 1) % r(1) > 0 && r(2) > 0)
     for m = 1:2
       if pointsInside
         if m == 1
@@ -92,7 +95,13 @@ for n = 1:N
     r = [-A \ c; 1];
   end
   
-  labels(n, :) = r(1:3);
+  if usePitchRoll
+    pitch = atan(-r(1) / sqrt(r(2)^2 + r(3)^2));
+    roll = mod(atan(r(2) / r(3)), pi) - pi / 2;
+    labels(n, :) = [pitch; roll];
+  else
+    labels(n, :) = [r(1); 1/r(2)];
+  end
   if labels(n, 2) > 1
     disp('');
   end
@@ -112,11 +121,11 @@ for n = 1:N
 end
 
 normLabels = labels';
-normLabels = normLabels ./ sqrt(sum(normLabels.^2, 1));
+%normLabels = normLabels ./ sqrt(sum(normLabels.^2, 1));
 
 %normLabels = abs(normLabels); %%%%%%%
 
-stdLabels = reshape(normLabels(1:2, :), [1, 1, 2, N]);
+stdLabels = reshape(normLabels(1:k, :), [1, 1, k, N]);
 muScale = 1;
 sigmaScale = 1;
 Nnew = N;

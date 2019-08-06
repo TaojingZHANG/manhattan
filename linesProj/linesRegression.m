@@ -41,35 +41,34 @@ layers = [
     convolution2dLayer([3, 3], 16, 'Padding','same','Name', 'conv2')
    batchNormalizationLayer('Name','bn2')
     reluLayer('Name','relu2')
+%     
+%     convolution2dLayer([3, 3], 32, 'Padding','same', 'Name','conv3')
+%    batchNormalizationLayer('Name','bn3')
+%     reluLayer('Name','relu3')
+% 
+%     convolution2dLayer([3, 3], 64 ,'Padding','same','Name', 'conv4')
+%    batchNormalizationLayer('Name','bn4')
+%     reluLayer('Name','relu4')
     
-    convolution2dLayer([3, 3], 32, 'Padding','same', 'Name','conv3')
-   batchNormalizationLayer('Name','bn3')
-    reluLayer('Name','relu3')
-
-    convolution2dLayer([3, 3], 64 ,'Padding','same','Name', 'conv4')
-   batchNormalizationLayer('Name','bn4')
-    reluLayer('Name','relu4')
+%     convolution2dLayer([3, 3], 128 ,'Padding','same')
+%     batchNormalizationLayer
+%     reluLayer
     
-    convolution2dLayer([3, 3], 128 ,'Padding','same')
-    batchNormalizationLayer
-    reluLayer
-    
-  newargmaxLayer('argmax', 0.5);
+  newargmaxLayer('argmax', 1);
   
-    fullyConnectedLayer(128, 'Name','fc1')
+    fullyConnectedLayer(1024, 'Name','fc1')
     reluLayer('Name','relu5')
     
     fullyConnectedLayer(64)
     reluLayer
-    
-    fullyConnectedLayer(32)
-    reluLayer
+%     
+%     fullyConnectedLayer(32)
+%     reluLayer
 
     fullyConnectedLayer(2, 'Name', 'fc2')
     %twoLineLayer('two lines')
     %xyRegressionLayer('intersection regression')]; ...
-%     sphereLayer('Spherical Regression')
-    %expSphericalRegressionLayer('Exponential Spherical Regression', 1e-10)];
+    %sphereLayer('Spherical Regression')
 %     expSphereLayer('sphere')
 %    cosineSphereLayer('cosineSphere')
     xyRegressionLayer('xyRegression')];
@@ -100,13 +99,13 @@ options = trainingOptions('adam', ...
     'LearnRateDropPeriod',10, ...
     'Shuffle','every-epoch', ...
     'Plots','training-progress', ...
-    'L2Regularization', 1e-4, ...
+    'L2Regularization', 0, ...
     'VerboseFrequency', 10, ...
     'ValidationData', {testIms, testLabels}, ...
    'ValidationFrequency', validationFreq, ...
-   'ValidationPatience', Inf, ...
-   'GradientThresholdMethod', 'l2norm', ...
-   'GradientThreshold', 1);
+   'ValidationPatience', Inf);
+%    'GradientThresholdMethod', 'l2norm', ...
+%    'GradientThreshold', 1e-5);
   
   
  %% Train network
