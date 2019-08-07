@@ -2,7 +2,7 @@
 clear all
 close all
 rng(0);
-load('lineData.mat');
+load('newLineData10ksmall.mat');
 addpath('../tools/')
 
 useCoordConv = false;
@@ -41,7 +41,7 @@ layers = [
     convolution2dLayer([3, 3], 16, 'Padding','same','Name', 'conv2')
    batchNormalizationLayer('Name','bn2')
     reluLayer('Name','relu2')
-%     
+     
 %     convolution2dLayer([3, 3], 32, 'Padding','same', 'Name','conv3')
 %    batchNormalizationLayer('Name','bn3')
 %     reluLayer('Name','relu3')
@@ -59,8 +59,8 @@ layers = [
     fullyConnectedLayer(1024, 'Name','fc1')
     reluLayer('Name','relu5')
     
-    fullyConnectedLayer(64)
-    reluLayer
+%     fullyConnectedLayer(64)
+%     reluLayer
 %     
 %     fullyConnectedLayer(32)
 %     reluLayer
@@ -150,6 +150,26 @@ legend(['Test: R2 = ', num2str(r2Test(1))])
 subplot(224)
 plot(squeeze(testLabels(1, 1, 2, :)), vPred(:, 2), '.')
 legend(['Test: R2 = ', num2str(r2Test(2))])
+
+%% Calculate angular error
+rPred = [vPred(:, 1), 1 ./ vPred(:, 2)];
+rPred(:, 3) = ones(length(rPred), 1);
+rLabels = [squeeze(testLabels(1, 1, 1, :)), 1 ./ squeeze(testLabels(1, 1, 2, :))];
+rLabels(:, 3) = ones(length(rPred), 1);
+
+rollpred = atan(-rPred(:, 1) ./ sqrt(rPred(:, 2).^2 + rPred(:, 3).^2));
+pitchpred = atan(rPred(:, 2) ./ rPred(:, 3));
+
+roll = atan(-rLabels(:, 1) ./ sqrt(rLabels(:, 2).^2 + rLabels(:, 3).^2));
+pitch = atan(rLabels(:, 2) ./ rLabels(:, 3));
+
+figure
+subplot(211)
+histogram(rad2deg(rollpred - roll))
+xlabel('Roll error [degrees]')
+subplot(212)
+histogram(rad2deg(pitchpred - pitch));
+xlabel('Pitch error [degrees]')
 
 %%
 layer = 2;

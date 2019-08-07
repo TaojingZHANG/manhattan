@@ -3,11 +3,11 @@ rng(0)
 
 %% Generate N random images with M lines and their intersection as labels
 
-N = 1000;
+N = 5000;
 M = 2;
 k = 2;
 sigma2 = 0.001;
-thresHigh = 10000;
+thresHigh = 1e10;
 thresLow = 1;
 
 usePitchRoll = false;
@@ -15,8 +15,8 @@ usePitchRoll = false;
 pointsInside = false;
 
 imres = [78, 78];
-lineIms = single(zeros(imres(1), imres(2), 4, N)); % uint8
-labels = zeros(N, k);
+lineIms = single(zeros(imres(1), imres(2), 1, N)); % uint8
+labels = zeros(N, 2);
 
 iCoord = repmat(1:imres(1), [imres(1), 1]);
 jCoord = repmat((1:imres(2))', [1, imres(2)]);
@@ -114,9 +114,9 @@ for n = 1:N
   I = frame2im(getframe(ax));
   Inoisy = imnoise(uint8(rgb2gray(I)), 'gaussian', 0, sigma2);
   lineIms(:, :, 1, n) = Inoisy';
-  lineIms(:, :, 2, n) = iCoord;
-  lineIms(:, :, 3, n) = jCoord;
-  lineIms(:, :, 4, n) = rCoord;
+%   lineIms(:, :, 2, n) = iCoord;
+%   lineIms(:, :, 3, n) = jCoord;
+%   lineIms(:, :, 4, n) = rCoord;
   
 end
 
