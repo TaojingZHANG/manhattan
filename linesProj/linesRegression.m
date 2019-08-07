@@ -34,56 +34,46 @@ squareSize = 5;
 layers = [
     imageInputLayer([inputSize], 'Normalization', 'zerocenter', 'Name', 'input')
     
-    convolution2dLayer([3, 3], 8, 'Padding','same', 'Name', 'conv1')
+    convolution2dLayer([5, 5], 16, 'Padding','same', 'Name', 'conv1')
     batchNormalizationLayer('Name','bn1')
     reluLayer('Name','relu1')
     
+    maxPooling2dLayer(2, 'Stride', 2, 'Name','pool1')
+    
     convolution2dLayer([3, 3], 16, 'Padding','same','Name', 'conv2')
-   batchNormalizationLayer('Name','bn2')
+    batchNormalizationLayer('Name','bn2')
     reluLayer('Name','relu2')
-     
-%     convolution2dLayer([3, 3], 32, 'Padding','same', 'Name','conv3')
-%    batchNormalizationLayer('Name','bn3')
-%     reluLayer('Name','relu3')
-% 
-%     convolution2dLayer([3, 3], 64 ,'Padding','same','Name', 'conv4')
-%    batchNormalizationLayer('Name','bn4')
-%     reluLayer('Name','relu4')
     
-%     convolution2dLayer([3, 3], 128 ,'Padding','same')
-%     batchNormalizationLayer
-%     reluLayer
+    maxPooling2dLayer(2, 'Stride', 2, 'Name','pool2')
     
-  newargmaxLayer('argmax', 1);
+    convolution2dLayer([3, 3], 16, 'Padding','same', 'Name','conv3')
+    batchNormalizationLayer('Name','bn3')
+    reluLayer('Name','relu3')
+    
+    maxPooling2dLayer(2, 'Stride', 2, 'Name','pool3')    
   
-    fullyConnectedLayer(1024, 'Name','fc1')
-    reluLayer('Name','relu5')
+    fullyConnectedLayer(128, 'Name','fc1')
+    depthConcatenationLayer(2,'Name','concat1')
+    reluLayer('Name','relu4')
     
-%     fullyConnectedLayer(64)
-%     reluLayer
-%     
-%     fullyConnectedLayer(32)
-%     reluLayer
+    fullyConnectedLayer(128, 'Name','fc2')
+    reluLayer('Name','relu5')
 
-    fullyConnectedLayer(2, 'Name', 'fc2')
-    %twoLineLayer('two lines')
-    %xyRegressionLayer('intersection regression')]; ...
-    %sphereLayer('Spherical Regression')
-%     expSphereLayer('sphere')
-%    cosineSphereLayer('cosineSphere')
+    fullyConnectedLayer(2, 'Name', 'fc3')
     xyRegressionLayer('xyRegression')];
 
   
   
-% classlayer = classificationLayer('Name', 'classification');
-% 
-% lgraph = layerGraph(layers);
-% lgraph = addLayers(lgraph, classlayer);
-% lgraph = connectlayers(lgraph, 'fc2', 'classification');
-% figure
-% plot(lgraph)
+lgraph = layerGraph(layers);
+%poolskip = maxPooling2dLayer(9, 'Name', 'poolskip');
+fcskip = fullyConnectedLayer(128, 'Name','fcskip');
+argmaxskip = newargmaxLayer('argmax', 1);
+lgraph = addLayers(lgraph,argmaxskip);
+lgraph = addLayers(lgraph,fcskip);
+lgraph = connectLayers(lgraph,'relu1','argmax');
+lgraph = connectLayers(lgraph,'argmax','fcskip');
+lgraph = connectLayers(lgraph,'fcskip','concat1/in2');
 
-% layers(end-2) = setLearnRateFactor(layers(end-2),'Weights',5);
 
 %% Training parameters
 
@@ -109,7 +99,7 @@ options = trainingOptions('adam', ...
   
   
  %% Train network
-[net, trainInfo] = trainNetwork(trainIms, trainLabels, layers, options);
+[net, trainInfo] = trainNetwork(trainIms, trainLabels, lgraph, options);
 
 %% Prediction
 vPredTrain = predict(net, trainIms, 'MiniBatchSize', miniBatchSize, 'ExecutionEnvironment', 'cpu');
@@ -170,6 +160,8 @@ xlabel('Roll error [degrees]')
 subplot(212)
 histogram(rad2deg(pitchpred - pitch));
 xlabel('Pitch error [degrees]')
+
+
 
 %%
 layer = 2;
