@@ -34,29 +34,29 @@ squareSize = 5;
 layers = [
     imageInputLayer([inputSize], 'Normalization', 'zerocenter', 'Name', 'input')
     
-    convolution2dLayer([5, 5], 16, 'Padding','same', 'Name', 'conv1')
+    convolution2dLayer([5, 5], 32, 'Padding','same', 'Name', 'conv1')
     batchNormalizationLayer('Name','bn1')
     reluLayer('Name','relu1')
     
     maxPooling2dLayer(2, 'Stride', 2, 'Name','pool1')
     
-    convolution2dLayer([3, 3], 16, 'Padding','same','Name', 'conv2')
+    convolution2dLayer([3, 3], 32, 'Padding','same','Name', 'conv2')
     batchNormalizationLayer('Name','bn2')
     reluLayer('Name','relu2')
     
     maxPooling2dLayer(2, 'Stride', 2, 'Name','pool2')
     
-    convolution2dLayer([3, 3], 16, 'Padding','same', 'Name','conv3')
+    convolution2dLayer([3, 3], 32, 'Padding','same', 'Name','conv3')
     batchNormalizationLayer('Name','bn3')
     reluLayer('Name','relu3')
     
     maxPooling2dLayer(2, 'Stride', 2, 'Name','pool3')    
   
-    fullyConnectedLayer(128, 'Name','fc1')
+    fullyConnectedLayer(32, 'Name','fc1')
     depthConcatenationLayer(2,'Name','concat1')
     reluLayer('Name','relu4')
     
-    fullyConnectedLayer(128, 'Name','fc2')
+    fullyConnectedLayer(64, 'Name','fc2')
     reluLayer('Name','relu5')
 
     fullyConnectedLayer(2, 'Name', 'fc3')
@@ -65,8 +65,7 @@ layers = [
   
   
 lgraph = layerGraph(layers);
-%poolskip = maxPooling2dLayer(9, 'Name', 'poolskip');
-fcskip = fullyConnectedLayer(128, 'Name','fcskip');
+fcskip = fullyConnectedLayer(32, 'Name','fcskip');
 argmaxskip = newargmaxLayer('argmax', 1);
 lgraph = addLayers(lgraph,argmaxskip);
 lgraph = addLayers(lgraph,fcskip);
