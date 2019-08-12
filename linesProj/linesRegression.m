@@ -2,7 +2,7 @@
 clear all
 close all
 rng(0);
-load('newLineData10ksmall.mat');
+load('lineData.mat');
 addpath('../tools/')
 
 useCoordConv = false;
@@ -53,7 +53,6 @@ layers = [
     maxPooling2dLayer(2, 'Stride', 2, 'Name','pool3')    
   
     fullyConnectedLayer(32, 'Name','fc1')
-    depthConcatenationLayer(2,'Name','concat1')
     reluLayer('Name','relu4')
     
     fullyConnectedLayer(64, 'Name','fc2')
@@ -64,14 +63,14 @@ layers = [
 
   
   
-lgraph = layerGraph(layers);
-fcskip = fullyConnectedLayer(32, 'Name','fcskip');
-argmaxskip = newargmaxLayer('argmax', 1);
-lgraph = addLayers(lgraph,argmaxskip);
-lgraph = addLayers(lgraph,fcskip);
-lgraph = connectLayers(lgraph,'relu1','argmax');
-lgraph = connectLayers(lgraph,'argmax','fcskip');
-lgraph = connectLayers(lgraph,'fcskip','concat1/in2');
+% lgraph = layerGraph(layers);
+% fcskip = fullyConnectedLayer(32, 'Name','fcskip');
+% argmaxskip = newargmaxLayer('argmax', 1);
+% lgraph = addLayers(lgraph,argmaxskip);
+% lgraph = addLayers(lgraph,fcskip);
+% lgraph = connectLayers(lgraph,'relu1','argmax');
+% lgraph = connectLayers(lgraph,'argmax','fcskip');
+% lgraph = connectLayers(lgraph,'fcskip','concat1/in2');
 
 
 %% Training parameters
@@ -98,7 +97,7 @@ options = trainingOptions('adam', ...
   
   
  %% Train network
-[net, trainInfo] = trainNetwork(trainIms, trainLabels, lgraph, options);
+[net, trainInfo] = trainNetwork(trainIms, trainLabels, layers, options);
 
 %% Prediction
 vPredTrain = predict(net, trainIms, 'MiniBatchSize', miniBatchSize, 'ExecutionEnvironment', 'cpu');
@@ -129,16 +128,20 @@ figure
 subplot(221)
 plot(squeeze(trainLabels(1, 1, 1, :)), vPredTrain(:, 1), '.')
 legend(['Train: R2 = ', num2str(r2Train(1))])
+xlabel('True Label'), ylabel('Predicted Label')
 subplot(222)
 plot(squeeze(trainLabels(1, 1, 2, :)), vPredTrain(:, 2), '.')
 legend(['Train: R2 = ', num2str(r2Train(2))])
+xlabel('True Label'), ylabel('Predicted Label')
 
 subplot(223)
 plot(squeeze(testLabels(1, 1, 1, :)), vPred(:, 1), '.')
 legend(['Test: R2 = ', num2str(r2Test(1))])
+xlabel('True Label'), ylabel('Predicted Label')
 subplot(224)
 plot(squeeze(testLabels(1, 1, 2, :)), vPred(:, 2), '.')
 legend(['Test: R2 = ', num2str(r2Test(2))])
+xlabel('True Label'), ylabel('Predicted Label')
 
 %% Calculate angular error
 rPred = [vPred(:, 1), 1 ./ vPred(:, 2)];
@@ -154,14 +157,26 @@ pitch = atan(rLabels(:, 2) ./ rLabels(:, 3));
 
 figure
 subplot(211)
-histogram(rad2deg(rollpred - roll))
+ecdf(abs(rollpred - roll))
 xlabel('Roll error [degrees]')
+ylabel('CDF')
+grid on
 subplot(212)
-histogram(rad2deg(pitchpred - pitch));
+ecdf(abs(rad2deg(pitchpred - pitch)))
 xlabel('Pitch error [degrees]')
+grid on
+ylabel('CDF')
 
 
+%% Calculate arccos error
+angErr = zeros(length(rPred), 1);
+for i = 1:length(rPred)
+  angErr(i) = rad2deg(acos(rLabels(i, :) * rPred(i, :)' / (norm(rPred(i, :)) * norm(rLabels(i, :)))));
+end
 
+figure
+ecdf(angErr)
+grid on
 %%
 layer = 2;
 name = net.Layers(layer).Name;
