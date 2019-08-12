@@ -3,10 +3,10 @@ rng(0)
 
 %% Generate N random images with M lines and their intersection as labels
 
-N = 5000;
-M = 2;
+N = 10000;
+Nlines = 5;
 k = 2;
-sigma2 = 0.001;
+sigma2 = 0.1;
 thresHigh = 1e10;
 thresLow = 1;
 
@@ -14,6 +14,8 @@ usePitchRoll = false;
 
 pointsInside = false;
 
+M = 2;
+Mextra = Nlines - 2;
 imres = [78, 78];
 lineIms = single(zeros(imres(1), imres(2), 1, N)); % uint8
 labels = zeros(N, 2);
@@ -93,6 +95,16 @@ for n = 1:N
     % Calculate intersection
     A = [a, b];
     r = [-A \ c; 1];
+  end
+  
+  if Mextra > 0
+    hold on
+    for i = 1:Mextra
+      p1 = -1 + 2 * rand(2, 1);
+      p2 = r(1:2);
+      plot([p1(1), p2(1)], [p1(2), p2(2)], 'w');
+    end
+    hold off
   end
   
   if usePitchRoll
