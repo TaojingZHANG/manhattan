@@ -1,4 +1,4 @@
-%% Euler Angel (Pitch, Roll) regression on Aachen dataset
+%% Horizon line regression
 clear all
 close all
 rng(0);
@@ -24,7 +24,7 @@ layers = [
 
 miniBatchSize = 64;
 L2reg = 0;
-lr = 1e-3;
+lr = 1e-4;
 lrDropRate = 0.1;
 lrDropPeriod = 3;
 validationFreq = 100;
@@ -67,7 +67,7 @@ end
 
 %% 
 
-horizonDir = '/media/sf_axelsVirtualBox/wildhorizon/';
+horizonDir = '../wildhorizon/';
 fileName = 'metadata.csv';
 
 fid = fopen([horizonDir, fileName]);
@@ -90,17 +90,45 @@ for n = 1:length(pred)
   i = imfinfo([horizonDir, 'images/', cell2mat(imdata{1}(index))]);
   x1 = 0; x2 = i.Width;
   
-  y1 = (-lTrue(1) * x1 - lTrue(3) * 1) / lTrue(2);
-  y2 = (-lTrue(1) * x2 - lTrue(3) * 1) / lTrue(2);
-  y1Hat = (-lHat(1) * x1 - lHat(3) * 1) / lHat(2);
-  y2Hat = (-lHat(1) * x2 - lHat(3) * 1) / lHat(2);
+  y1 = (-lTrue(1) * x1 / xScale - lTrue(3) * 1) / lTrue(2) * yScale;
+  y2 = (-lTrue(1) * x2 / xScale- lTrue(3) * 1) / lTrue(2) * yScale;
+  y1Hat = (-lHat(1) * x1 / xScale - lHat(3) * 1) / lHat(2) * yScale;
+  y2Hat = (-lHat(1) * x2 / xScale - lHat(3) * 1) / lHat(2) * yScale;
   horErr(n) = max(abs([y1Hat - y1, y2Hat - y2])) / i.Height;
 end
   
-  
+%% Calculate empirical cumulative error distribution
+
+figure
+ecdf(horErr(horErr < 1))
+[F, X] = ecdf(horErr(horErr < 1));
+auc = sum(F(2:end) .* diff(X));
+
+
+%%
+
+% protofile = '~/deephorizon/models/regression/init_best_so_huber/solver.proto';
+% datafile =  '~/deephorizon/models/regression/init_best_so_huber/init_best_so_huber.caffemodel';
+% 
+% net = importCaffeNetwork(protofile,datafile)
+
+%% Visualize first conv layer using deep dream 
+
+layer = 2;
+name = net.Layers(layer).Name;
+
+channels = 1:64;
+I = deepDreamImage(net,layer,channels,'PyramidLevels',1);
+
+figure
+for i = 1:length(channels)
+  subplot(8,8,i)
+  imagesc(I(:, :, :, i))
+end
+
 %% Show samples for some images
 
-for n = 1:10
+for n = 1:100
   lHat = pred(n, :);
   lTrue = labels(n, :);
   name = test{1}{n};
@@ -109,10 +137,10 @@ for n = 1:10
   I = imread([horizonDir, 'images/', cell2mat(imdata{1}(index))]);
   x1 = 0; x2 = i.Width;
   
-  y1 = (-lTrue(1) * x1 - lTrue(3) * 1) / lTrue(2);
-  y2 = (-lTrue(1) * x2 - lTrue(3) * 1) / lTrue(2);
-  y1Hat = (-lHat(1) * x1 - lHat(3) * 1) / lHat(2);
-  y2Hat = (-lHat(1) * x2 - lHat(3) * 1) / lHat(2);
+  y1 = (-lTrue(1) * x1 / xScale - lTrue(3) * 1) / lTrue(2) * yScale;
+  y2 = (-lTrue(1) * x2 / xScale- lTrue(3) * 1) / lTrue(2) * yScale;
+  y1Hat = (-lHat(1) * x1 / xScale - lHat(3) * 1) / lHat(2) * yScale;
+  y2Hat = (-lHat(1) * x2 / xScale - lHat(3) * 1) / lHat(2) * yScale;
   
   figure(1); clf;
   sz = size(I); sz = sz(1:2);
@@ -128,10 +156,3 @@ for n = 1:10
   
 end
 
-
-%%
-
-% protofile = '~/deephorizon/models/regression/init_best_so_huber/solver.proto';
-% datafile =  '~/deephorizon/models/regression/init_best_so_huber/init_best_so_huber.caffemodel';
-% 
-% net = importCaffeNetwork(protofile,datafile)

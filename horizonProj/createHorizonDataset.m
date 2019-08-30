@@ -5,7 +5,7 @@ rng(0);
 
 
 addpath('../tools/')
-horizonDir = '/media/sf_axelsVirtualBox/wildhorizon/';
+horizonDir = '../wildhorizon/';
 fileName = 'metadata.csv';
 
 fid = fopen([horizonDir, fileName]);
@@ -43,13 +43,16 @@ trainLabels = zeros(3, length(train{1}));
 valLabels = zeros(3, length(val{1}));
 testLabels = zeros(3, length(test{1}));
 
+xScale = mean(abs(imdata{2}));
+yScale = mean(abs(imdata{3}));
+
 for i = 1:length(trainLabels)
   name = train{1}{i};
   index = find(contains(imdata{1}, name));
-  x1 = imdata{2}(index);
-  y1 = imdata{3}(index);
-  x2 = imdata{4}(index);
-  y2 = imdata{5}(index);
+  x1 = imdata{2}(index) / xScale;
+  y1 = imdata{3}(index) / yScale;
+  x2 = imdata{4}(index) / xScale;
+  y2 = imdata{5}(index) / yScale;
   M = [x1, y1, 1; x2, y2, 1];
   l = null(M);
   trainLabels(:, i) = l;
@@ -59,10 +62,10 @@ end
 for i = 1:length(valLabels)
   name = val{1}{i};
   index = find(contains(imdata{1}, name));
-  x1 = imdata{2}(index);
-  y1 = imdata{3}(index);
-  x2 = imdata{4}(index);
-  y2 = imdata{5}(index);
+  x1 = imdata{2}(index) / xScale;
+  y1 = imdata{3}(index) / yScale;
+  x2 = imdata{4}(index) / xScale;
+  y2 = imdata{5}(index) / yScale;
   M = [x1, y1, 1; x2, y2, 1];
   l = null(M);
   valLabels(:, i) = l;
@@ -71,10 +74,10 @@ end
 for i = 1:length(testLabels)
   name = test{1}{i};
   index = find(contains(imdata{1}, name));
-  x1 = imdata{2}(index);
-  y1 = imdata{3}(index);
-  x2 = imdata{4}(index);
-  y2 = imdata{5}(index);
+  x1 = imdata{2}(index) / xScale;
+  y1 = imdata{3}(index) / yScale;
+  x2 = imdata{4}(index) / xScale;
+  y2 = imdata{5}(index) / yScale;
   M = [x1, y1, 1; x2, y2, 1];
   l = null(M);
   testLabels(:, i) = l;
@@ -130,5 +133,5 @@ horizonDsTest = horizonDataStore(imdsTest, testLabels, imSize, meanImage, useBw)
 
 %% Save images and labels
 
-save('horizonDs', 'horizonDsTrain', 'horizonDsVal', 'horizonDsTest', 'k');
+save('horizonDs', 'horizonDsTrain', 'horizonDsVal', 'horizonDsTest', 'k', 'yScale', 'xScale');
 

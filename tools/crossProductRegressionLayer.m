@@ -17,7 +17,7 @@ classdef crossProductRegressionLayer < nnet.layer.RegressionLayer
             % loss = forwardLoss(layer, Y, T) returns the cross product loss between
             % the predictions Y and the training targets T.
 
-            assert(size(Y) == 3, 'Input must be 3D vector');
+            assert(size(Y, 3) == 3, 'Input must be 3D vector');
             
             crossLoss = sum(cross(Y, T, 3).^2, 3);
     

@@ -114,6 +114,7 @@ classdef horizonDataStore < matlab.io.Datastore & ...
                 else
                   predictors{i} = single(Xsmall) - single(ds.meanImage);
                 end
+                predictors{i} = predictors{i} / 127; % normalize to [-1, 1]
             end
             
             % Return data as a table.
