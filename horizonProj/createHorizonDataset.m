@@ -90,7 +90,7 @@ imdsVal = fileDatastore(strcat(horizonDir, 'images/', val{:}), 'ReadFcn', @imrea
 imdsTest = fileDatastore(strcat(horizonDir, 'images/', test{:}), 'ReadFcn', @imread);
 
 %% Calculate a mean image based on a sample of 100 images
-imSize = [227, 227];
+imSize = [224, 224];
 useBw = false;
 
 N = 100;
@@ -133,5 +133,5 @@ horizonDsTest = horizonDataStore(imdsTest, testLabels, imSize, meanImage, useBw)
 
 %% Save images and labels
 
-save('horizonDs', 'horizonDsTrain', 'horizonDsVal', 'horizonDsTest', 'k', 'yScale', 'xScale');
+save('horizonDsGoogLe', 'horizonDsTrain', 'horizonDsVal', 'horizonDsTest', 'k', 'yScale', 'xScale');
 

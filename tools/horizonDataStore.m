@@ -96,12 +96,12 @@ classdef horizonDataStore < matlab.io.Datastore & ...
                 if origSize(1) > origSize(2) % vertical
                   squareSize = origSize(2);
                   L = origSize(1);
-                  interval = [floor(L / 2) - floor(squareSize / 2):floor(L / 2) + floor(squareSize / 2) - 1];
+                  interval = [ceil(L / 2) - floor(squareSize / 2):ceil(L / 2) + floor(squareSize / 2) - 1];
                   Xcrop = X(interval, :, :);
                 elseif origSize(2) > origSize(1) % horizontal
                   squareSize = origSize(1);
                   L = origSize(2);
-                  interval = [floor(L / 2) - floor(squareSize / 2):floor(L / 2) + floor(squareSize / 2) - 1];
+                  interval = [ceil(L / 2) - floor(squareSize / 2):ceil(L / 2) + floor(squareSize / 2) - 1];
                   Xcrop = X(:, interval, :);
                 else % square
                   Xcrop = X;

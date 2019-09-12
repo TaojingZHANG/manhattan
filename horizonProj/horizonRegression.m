@@ -4,13 +4,38 @@ close all
 rng(0);
 
 %% Load database
+addpath('../tools/')
 load('horizonDs.mat');
 
 %% Custom network
 
 inputSize = [227, 227, 3];
 
-transfernet = alexnet;
+% layers = [
+%     imageInputLayer([inputSize], 'Normalization', 'none', 'Name', 'input')
+%     
+%     convolution2dLayer([7, 7], 64, 'Padding','same', 'Stride', 2, 'Name', 'conv1')
+%     batchNormalizationLayer('Name','bn1')
+%     reluLayer('Name','relu1')
+%     
+%     convolution2dLayer([5, 5], 32, 'Padding','same','Name', 'conv2')
+%     batchNormalizationLayer('Name','bn2')
+%     reluLayer('Name','relu2')
+%         
+%     convolution2dLayer([5, 5], 16, 'Padding','same', 'Name','conv3')
+%     batchNormalizationLayer('Name','bn3')
+%     reluLayer('Name','relu3')
+%     
+%     softargmaxLayer2('softargmax')
+%   
+%     fullyConnectedLayer(32, 'Name','fc1')
+%     reluLayer('Name','relu4')
+% 
+%     fullyConnectedLayer(3, 'Name', 'fc3')
+%     sphereLayer('sphere')
+%     crossProductRegressionLayer('cross')];
+
+transfernet = importCaffeNetwork('deploy_alexnet_places365.prototxt','alexnet_places365.caffemodel');
 layersTransfer = transfernet.Layers(2:end-3);
 layers = [
   imageInputLayer(inputSize, 'Normalization', 'none');
@@ -19,6 +44,21 @@ layers = [
   sphereLayer('Sphere')
   crossProductRegressionLayer('cross')];
 
+
+% layers(2).WeightLearnRateFactor = 0;
+% layers(2).BiasLearnRateFactor = 0;
+% 
+% layers(6).WeightLearnRateFactor = 0;
+% layers(6).BiasLearnRateFactor = 0;
+% 
+% layers(10).WeightLearnRateFactor = 0;
+% layers(10).BiasLearnRateFactor = 0;
+% 
+% layers(12).WeightLearnRateFactor = 0;
+% layers(12).BiasLearnRateFactor = 0;
+% 
+% layers(14).WeightLearnRateFactor = 0;
+% layers(14).BiasLearnRateFactor = 0;
 
 %% Training parameters
 
@@ -57,13 +97,12 @@ pred = predict(net, horizonDsTest, 'MiniBatchSize', miniBatchSize, 'ExecutionEnv
 
 %% Evaluate error based on horizon error
 
-err = zeros(size(pred));
+err = zeros(length(pred), 1);
 labels = zeros(size(pred));
 for n = 1:length(pred)
   labels(n, :) = squeeze(horizonDsTest.Labels{n})';
-  err(n, :) = squeeze(horizonDsTest.Labels{n})' - pred(n, :);
+  err(n, :) = sum(cross(labels(n, :), pred(n, :)).^2);
 end
-
 
 %% 
 
@@ -100,9 +139,7 @@ end
 %% Calculate empirical cumulative error distribution
 
 figure
-ecdf(horErr(horErr < 1))
-[F, X] = ecdf(horErr(horErr < 1));
-auc = sum(F(2:end) .* diff(X));
+auc = calc_auc(horErr, true, '', false);
 
 
 %%
@@ -128,7 +165,7 @@ end
 
 %% Show samples for some images
 
-for n = 1:100
+for n = randperm(length(pred))
   lHat = pred(n, :);
   lTrue = labels(n, :);
   name = test{1}{n};
