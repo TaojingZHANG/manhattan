@@ -37,7 +37,7 @@ classdef horizonDataStore < matlab.io.Datastore & ...
             numObservations = numel(imDs.Files);
             labels = cell(length(inputLabels), 1);
             for i = 1:numObservations
-                labels{i,1} = reshape(inputLabels(:, i), [1, 1, 3]);
+                labels{i,1} = reshape(inputLabels(:, i), [1, 1, size(inputLabels, 1)]);
             end
             ds.Labels = labels;
             
