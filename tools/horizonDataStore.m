@@ -10,6 +10,7 @@ classdef horizonDataStore < matlab.io.Datastore & ...
         imSize
         meanImage
         bw % use black and white?
+        NumClasses
     end
     
     properties(SetAccess = protected)
@@ -24,7 +25,7 @@ classdef horizonDataStore < matlab.io.Datastore & ...
 
     methods
         
-        function ds = horizonDataStore(imDs, inputLabels, imSize, meanImage, bw)
+        function ds = horizonDataStore(imDs, inputLabels, imSize, meanImage, bw, numClasses)
 
             % Create a file datastore. The readSequence function is
             % defined following the class definition.
@@ -48,6 +49,9 @@ classdef horizonDataStore < matlab.io.Datastore & ...
             ds.imSize = imSize;
             ds.meanImage = meanImage;
             ds.bw = bw;
+            if nargin > 5
+              ds.NumClasses = numClasses;
+            end
         end
         
         
