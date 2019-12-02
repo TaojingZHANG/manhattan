@@ -2,9 +2,7 @@ classdef sigmoidLayer < nnet.layer.Layer
     methods
         function layer = sigmoidLayer(name)
             % Set layer name
-            if nargin == 2
-                layer.Name = name;
-            end
+            layer.Name = name;
             % Set layer description
             layer.Description = 'sigmoidLayer';
         end
