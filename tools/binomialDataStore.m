@@ -99,7 +99,7 @@ classdef binomialDataStore < matlab.io.Datastore & ...
             % the data in predictors and responses and returns the table
             % data
             
-            miniBatchSize = ds.MiniBatchSize;
+                      miniBatchSize = ds.MiniBatchSize;
             
             % Subtract mean image, crop image to correct imagesize and make grayscale
             for i = 1:miniBatchSize
@@ -107,7 +107,7 @@ classdef binomialDataStore < matlab.io.Datastore & ...
                 l = responses{i};
                 % horizontal flip
                 if ds.horizontalFlip
-                  if rand()
+                  if rand() > 0.5
                     X = flip(X,2);
                     x1 = l(1); y1 = l(2);
                     x2 = l(3); y2 = l(4);
@@ -178,16 +178,16 @@ classdef binomialDataStore < matlab.io.Datastore & ...
                 
                 responses{i} = cat(3, rhoLabels, thetaLabels);
                 
+                XBGR = cat(3, Xcrop(:, :, 3), Xcrop(:, :, 2), Xcrop(:, :, 1));
+                Xmean = zeros(224, 224, 3);
+                Xmean(:, :, 1) = 104;
+                Xmean(:, :, 2) = 116;
+                Xmean(:, :, 3) = 123;
                 
-%                 if ds.bw
-%                   predictors{i} = single(rgb2gray(Xcrop)) - single(ds.meanImage);
-%                 else
-%                   predictors{i} = single(Xcrop) - single(ds.meanImage);
-%                 end
-                %predictors{i} = predictors{i} / 127; % normalize to [-1, 1]
-                predictors{i} = single(Xcrop);
+                
+                predictors{i} = single(XBGR) - single(Xmean);
+                
             end
-            
             % Return data as a table.
             data = table(predictors,responses);
         end
