@@ -5,11 +5,11 @@ rng(0);
 
 
 addpath('../tools/')
-horizonDir = '../wildhorizon_small/';
+horizonDir = '../wildhorizon_large/';
 fileName = 'metadata.csv';
 
 fid = fopen([horizonDir, fileName]);
-imdata = textscan(fid, '%s %f %f %f %f %*[^\n]', 'Delimiter', ',');
+imdata = textscan(fid, '%s %f %f %f %f %f %f %*[^\n]', 'Delimiter', ',');
 fid = fclose(fid);
 
 
@@ -54,15 +54,15 @@ for i = 1:length(trainLabels)
   name = train{1}{i};
   index = find(contains(imdata{1}, name));
 
-  x1 = imdata{2}(index);
-  y1 = imdata{3}(index);
-  x2 = imdata{4}(index);
-  y2 = imdata{5}(index);
-  trainLabels(:, i) = [imdata{2}(index), imdata{3}(index), imdata{4}(index), imdata{5}(index)];
+  height = imdata{2}(index);
+  width = imdata{3}(index);
+  x1 = imdata{4}(index);
+  y1 = imdata{5}(index);
+  x2 = imdata{6}(index);
+  y2 = imdata{7}(index);
+  trainLabels(:, i) = [x1, y1, x2, y2];
   
-  I = imread([horizonDir, 'images/', name]);
-  sz = size(I);
-  scale = min(sz(1:2)) / cropSize;
+  scale = min([height, width]) / cropSize;
   
   rhoTrain(i) = (x2 * y1 - y2 * x1) / sqrt( (y2-y1)^2 + (x2 - x1)^2) / scale;
   thetaTrain(i) = atand((y2-y1) / (x2 - x1));
@@ -73,13 +73,23 @@ end
 for i = 1:length(valLabels)
   name = val{1}{i};
   index = find(contains(imdata{1}, name));
-  valLabels(:, i) = [imdata{2}(index), imdata{3}(index), imdata{4}(index), imdata{5}(index)];
+
+  x1 = imdata{4}(index);
+  y1 = imdata{5}(index);
+  x2 = imdata{6}(index);
+  y2 = imdata{7}(index);
+  valLabels(:, i) = [x1, y1, x2, y2];  
 end
 
 for i = 1:length(testLabels)
   name = test{1}{i};
   index = find(contains(imdata{1}, name));
-  testLabels(:, i) = [imdata{2}(index), imdata{3}(index), imdata{4}(index), imdata{5}(index)];
+
+  x1 = imdata{4}(index);
+  y1 = imdata{5}(index);
+  x2 = imdata{6}(index);
+  y2 = imdata{7}(index);
+  testLabels(:, i) = [x1, y1, x2, y2];
 end
 
 %% Calculate SORD classes
@@ -139,5 +149,5 @@ sordDsTest = sordDataStore(imdsTest, testLabels, imSize, cropSize, doFlip, rhoCl
 
 %% Save images and labels
 
-save('sordDs_small', 'sordDsTrain', 'sordDsVal', 'sordDsTest', 'k');
+save('sordDs_large', 'sordDsTrain', 'sordDsVal', 'sordDsTest', 'k');
 

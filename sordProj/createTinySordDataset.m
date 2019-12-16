@@ -15,7 +15,7 @@ fid = fclose(fid);
 
 %% Extract split
 
-k = 1; % pick every k:th image
+k = 16; % pick every k:th image
 
 fid = fopen([horizonDir, 'split/train.txt']);
 train = textscan(fid, '%s %*[^\n]');
@@ -139,5 +139,5 @@ sordDsTest = sordDataStore(imdsTest, testLabels, imSize, cropSize, doFlip, rhoCl
 
 %% Save images and labels
 
-save('sordDs_small', 'sordDsTrain', 'sordDsVal', 'sordDsTest', 'k');
+save('sordDs_tiny', 'sordDsTrain', 'sordDsVal', 'sordDsTest', 'k');
 

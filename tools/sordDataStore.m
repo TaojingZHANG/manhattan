@@ -51,7 +51,7 @@ classdef sordDataStore < matlab.io.Datastore & ...
             ds.Labels = labels;
             
             % Initialize datastore properties.
-            ds.MiniBatchSize = 128;
+            ds.MiniBatchSize = 32;
             ds.NumObservations = numObservations;
             ds.CurrentFileIndex = 1;
             ds.imSize = imSize;
@@ -119,7 +119,7 @@ classdef sordDataStore < matlab.io.Datastore & ...
                 l = responses{i};
                 % horizontal flip
                 if ds.horizontalFlip
-                  if rand()
+                  if rand() > 0.5
                     X = flip(X,2);
                     x1 = l(1); y1 = l(2);
                     x2 = l(3); y2 = l(4);
@@ -187,19 +187,26 @@ classdef sordDataStore < matlab.io.Datastore & ...
                 % calculate SORD labels
                 phiRho = @(x,y) (x-y).^2 / ds.rhoScale;
                 phiTheta = @(x,y) (x-y).^2 / ds.thetaScale;
-                rhoLabels = createSordLabels(rho, ds.rhoClasses, phiRho);
-                thetaLabels = createSordLabels(theta, ds.thetaClasses, phiTheta);
+                rhoLabels = createSordLabels(rho, ds.rhoClasses, phiRho, false);
+                thetaLabels = createSordLabels(theta, ds.thetaClasses, phiTheta, true);
                 
                 responses{i} = cat(3, rhoLabels, thetaLabels);
                 
-                
+%                 
 %                 if ds.bw
 %                   predictors{i} = single(rgb2gray(Xcrop)) - single(ds.meanImage);
 %                 else
 %                   predictors{i} = single(Xcrop) - single(ds.meanImage);
 %                 end
-                %predictors{i} = predictors{i} / 127; % normalize to [-1, 1]
-                predictors{i} = single(Xcrop);
+%                 predictors{i} = predictors{i} / 127; % normalize to [-1, 1]
+
+                XBGR = cat(3, Xcrop(:, :, 3), Xcrop(:, :, 2), Xcrop(:, :, 1));
+                Xmean = zeros(224, 224, 3);
+                Xmean(:, :, 1) = 104;
+                Xmean(:, :, 2) = 116;
+                Xmean(:, :, 3) = 123;
+
+                predictors{i} = single(XBGR) - single(Xmean);
             end
             
             % Return data as a table.

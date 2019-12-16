@@ -16,10 +16,13 @@ classdef customSoftmaxLayer < nnet.layer.Layer
             % the layer
             N = size(Z, 4);
             M = size(Z, 3);
-            dLdZ = reshape(dLdZ, [N, M]);
-            Z = reshape(Z, [N, M]);
-            dLdX = Z .* (dLdZ - (dLdZ .* Z) * ones(M, M));
-            dLdX = reshape(dLdX, [1, 1, M, N]);
+            dLdZ = squeeze(dLdZ);
+            Z = squeeze(Z);
+            for batch = 1:N
+                temp = -Z(:, batch) * Z(:, batch)';
+                temp(1:M+1:end) = temp(1:M+1:end) + Z(:, batch)';
+                dLdX(1, 1, :, batch) = dLdZ(:, batch)' * temp;
+            end
             
         end
     end

@@ -6,15 +6,15 @@ rng(0);
 %% Load database
 addpath('../tools/');
 addpath('../horizonProj/');
-load('sordDs.mat');
+load('sordDs_tiny.mat');
 
 sordDsTrain.rhoScale = 1;
 sordDsVal.rhoScale = 1;
 sordDsTest.rhoScale = 1;
 
-sordDsTrain.thetaScale = 0.001;
-sordDsVal.thetaScale = 0.001;
-sordDsTest.thetaScale = 0.001;
+sordDsTrain.thetaScale = 1;
+sordDsVal.thetaScale = 1;
+sordDsTest.thetaScale = 1;
 
 %% Custom network
 
@@ -23,15 +23,20 @@ inputSize = [224, 224, 3];
 Nclasses = 100;
 
 % Replicate Resnet
-net = layerGraph(resnet50);
+net = resnet50;
+%load('resnet50');
+net = layerGraph(net);
 %net = replaceLayer(net, 'input_1', imageInputLayer(inputSize, 'Normalization', 'none', 'name', 'input'));
 net = removeLayers(net, 'fc1000'); %fullyConnectedLayer(Nclasses, 'Name', 'fc'));
 net = removeLayers(net, 'fc1000_softmax'); %softmaxLayer('Name', 'softmax'));
 net = removeLayers(net, 'ClassificationLayer_fc1000');
 
-% Add 2 fully connected layers
-net = addLayers(net, fullyConnectedLayer(Nclasses, 'Name', 'fc1'));
-net = addLayers(net, fullyConnectedLayer(Nclasses, 'Name', 'fc2'));
+% Add 2 fully connected layers, one for rho and one for theta
+% Use 10 times higher learning rate on fully connected layers
+net = addLayers(net, fullyConnectedLayer(Nclasses, 'Name', 'fc1', ...
+    'WeightLearnRateFactor', 10, 'BiasLearnRateFactor', 10));
+net = addLayers(net, fullyConnectedLayer(Nclasses, 'Name', 'fc2', ...
+    'WeightLearnRateFactor', 10, 'BiasLearnRateFactor', 10));
 net = connectLayers(net, 'avg_pool', 'fc1');
 net = connectLayers(net, 'avg_pool', 'fc2');
 
@@ -42,7 +47,8 @@ net = addLayers(net, customSoftmaxLayer('sm2'));
 net = connectLayers(net, 'fc2', 'sm2');
 
 % concatenate softmax output
-net = addLayers(net, concatenationLayer(3,2,'Name','concat'));
+%net = addLayers(net, concatenationLayer(3,2,'Name','concat'));
+net = addLayers(net, depthConcatenationLayer(2,'Name','concat'));
 net = connectLayers(net, 'sm1', 'concat/in1');
 net = connectLayers(net, 'sm2', 'concat/in2');
 
@@ -56,14 +62,15 @@ net = connectLayers(net, 'concat', 'ce');
 miniBatchSize = 32;
 L2reg = 0;
 lr = 1e-3;  
-lrDropRate = 1; 
+lrDropRate = 0.1; 
 lrDropPeriod = 10;
 validationFreq = 300;
 maxEpochs = 50;
-
+gradientMomentum = 0.9;
 horizonDsTrain.MiniBatchSize = miniBatchSize;
 
-options = trainingOptions('adam', ...
+options = trainingOptions('sgdm', ...
+    'Momentum', gradientMomentum, ...
     'MiniBatchSize',miniBatchSize, ...
     'MaxEpochs',maxEpochs, ...
     'InitialLearnRate',lr, ...
@@ -73,23 +80,27 @@ options = trainingOptions('adam', ...
     'Shuffle','every-epoch', ...
     'Plots','training-progress', ...
     'L2Regularization', L2reg, ...
-    'VerboseFrequency', 10, ...
+    'VerboseFrequency', 100, ...
     'ValidationData', sordDsVal, ...
    'ValidationFrequency', validationFreq, ...
    'ValidationPatience', 300);
+   %'CheckpointPath', '/usr/matematik/axelb/vpRegression/sordProj/checkpoints/');
   
   
+% Data augmentation?
+sordDsTrain.randomCrop = false;
+sordDsTrain.horizontalFlip = false;
+
  %% Train network
-sordDsTrain.randomCrop = true;
-sordDsTrain.horizontalFlip = true;
+
 [net, trainInfo] = trainNetwork(sordDsTrain, net, options);
 
+%save('sordTrain');
 %% Make prediction on validation data
 
 sordDsTest.randomCrop = false;
 sordDsTest.horizontalFlip = false;
-pred = predict(net, sordDsTest, 'MiniBatchSize', miniBatchSize, 'ExecutionEnvironment', 'cpu');
-
+pred = predict(net, sordDsTest);
 %% Arg max prediction
 rho = pred(:, 1:Nclasses);
 theta = pred(:, Nclasses+1:end);
@@ -102,7 +113,7 @@ thetaEst = sordDsTest.thetaClasses(thetamax);
 
 %%
 
-horizonDir = '../wildhorizon/';
+horizonDir = '../wildhorizon_small/';
 fileName = 'metadata.csv';
 
 fid = fopen([horizonDir, fileName]);
@@ -135,10 +146,9 @@ for n = 1:length(rhoEst)
   M = [x1, y1, 1; x2, y2, 1];
   l = null(M);
   
+  scale = min([i.Height, i.Width]) / cropSize;
   rhoTrue(n) = (x2 * y1 - y2 * x1) / sqrt( (y2-y1)^2 + (x2 - x1)^2) / scale;
   thetaTrue(n) = atand((y2-y1) / (x2 - x1));
-  
-  scale = min([i.Height, i.Width]) / cropSize;
   
   x0Hat = 0;
   y0Hat = rhoEst(n) * scale / cosd(abs(thetaEst(n)));
